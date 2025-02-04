@@ -1,3 +1,8 @@
+// Helper functions will go here
+function formatNumber(num) {
+  return num.toLocaleString();
+}
+
 // Any helper functions go here
 
 function checkWinningLine(symbols) {

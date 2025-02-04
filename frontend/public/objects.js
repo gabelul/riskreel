@@ -1,3 +1,11 @@
+// Game objects will go here
+class GameObject {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+}
+
 // Any objects types go here
 
 class Symbol {
