@@ -74,53 +74,77 @@ window.SoundManager = class SoundManager {
   }
 };
 
-// Wait for p5.js to be available
 window.initTheme = (p) => {
   window.THEME = {
     colors: {
-      gold: p.color(255, 215, 0),
-      sandLight: p.color(255, 243, 224),
-      sandDark: p.color(166, 124, 82),
-      nileBlue: p.color(13, 71, 161),
-      pyramidStone: p.color(141, 110, 99),
-      nightSky: p.color(25, 35, 60),
-      accent: p.color(255, 87, 34)
+      gold: '#FFD700',
+      neonGold: '#FFE87C',
+      orange: '#FFA500',
+      darkBlue: '#1A1A2E',
+      lightBlue: '#4169E1',
+      black: '#000000',
+      white: '#FFFFFF'
     },
-    winTypes: {
-      smallWin: { minMatch: 2, value: 10 },
-      mediumWin: { minMatch: 3, value: 50 },
-      bigWin: { minMatch: 4, value: 100 },
-      jackpot: { minMatch: 5, value: 500 }
+    
+    layout: {
+      // Main game area
+      gameWidth: Math.min(p.windowWidth * 0.9, 1200),
+      gameHeight: Math.min(p.windowHeight * 0.9, 800),
+      
+      // Reel dimensions
+      reelWidth: 180,
+      reelHeight: 180,
+      reelSpacing: 10,
+      
+      // Header
+      headerHeight: 100,
+      
+      // Control panel
+      controlHeight: 120,
+      buttonWidth: 160,
+      buttonHeight: 60,
+      
+      // Paylines
+      paylineWidth: 40,
+      paylineSpacing: 60
     },
+    
     symbols: [
-      { char: '☥', name: 'ankh', value: 100, isSpecial: true },
-      { char: '👁', name: 'eye', value: 75, isSpecial: false },
-      { char: '🔺', name: 'pyramid', value: 50, isSpecial: false },
-      { char: '🪲', name: 'scarab', value: 25, isSpecial: false },
-      { char: '⚘', name: 'lotus', value: 10, isSpecial: false }
+      { char: '☥', name: 'ankh', value: 500 },
+      { char: '👁', name: 'eye', value: 200 },
+      { char: '🪲', name: 'scarab', value: 100 },
+      { char: '🔺', name: 'pyramid', value: 50 },
+      { char: '⚘', name: 'lotus', value: 20 }
     ],
-    ui: {
-      reelWidth: 100,
-      reelHeight: 100,
-      spacing: 20,
-      cornerRadius: 15,
-      glowStrength: 15,
-      spinDuration: 2000
+    
+    glow: {
+      strong: 20,
+      medium: 15,
+      weak: 10
     }
   };
 };
 
-window.drawGlowingText = (text, x, y, fillColor, size, glow = window.THEME.ui.glowStrength) => {
-  push();
-  drawingContext.shadowBlur = glow;
-  drawingContext.shadowColor = color(255, 215, 0).toString();
-  fill(fillColor);
-  noStroke();
-  textSize(size);
-  textAlign(CENTER, CENTER);
-  text(text, x, y);
-  drawingContext.shadowBlur = 0;
-  pop();
+// Utility function for neon glow effect
+window.drawNeonRect = (p, x, y, w, h, color, glowStrength = THEME.glow.medium) => {
+  p.drawingContext.shadowBlur = glowStrength;
+  p.drawingContext.shadowColor = color;
+  p.stroke(color);
+  p.strokeWeight(3);
+  p.noFill();
+  p.rect(x, y, w, h, 15);
+  p.drawingContext.shadowBlur = 0;
+};
+
+window.drawNeonText = (p, text, x, y, color, size, glowStrength = THEME.glow.medium) => {
+  p.drawingContext.shadowBlur = glowStrength;
+  p.drawingContext.shadowColor = color;
+  p.fill(color);
+  p.noStroke();
+  p.textSize(size);
+  p.textAlign(p.CENTER, p.CENTER);
+  p.text(text, x, y);
+  p.drawingContext.shadowBlur = 0;
 };
 
 console.log('Helpers loaded');

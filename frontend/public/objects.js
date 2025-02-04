@@ -1,76 +1,49 @@
-console.log('Loading objects...');
-
-window.Reel = class Reel {
+class Reel {
   constructor(p, x, y) {
     this.p = p;
     this.x = x;
     this.y = y;
-    this.targetY = y;
     this.symbol = THEME.symbols[0];
     this.rotation = 0;
-    this.speed = 0;
-    this.scale = 1;
+    this.spinning = false;
   }
 
   draw() {
     const p = this.p;
-    p.push();
-    p.translate(this.x + THEME.ui.reelWidth/2, this.y + THEME.ui.reelHeight/2);
-    p.rotate(this.rotation);
-    p.scale(this.scale);
-
-    // Reel background
-    p.drawingContext.shadowBlur = THEME.ui.glowStrength;
-    p.drawingContext.shadowColor = THEME.colors.gold.toString();
-    p.fill(25, 35, 60);
-    p.stroke(255, 215, 0);
-    p.strokeWeight(2);
-    p.rect(-THEME.ui.reelWidth/2, -THEME.ui.reelHeight/2, 
-           THEME.ui.reelWidth, THEME.ui.reelHeight, 
-           THEME.ui.cornerRadius);
-
-    // Symbol
-    p.fill(255, 215, 0);
-    p.noStroke();
-    p.textSize(THEME.ui.reelHeight * 0.6);
-    p.textAlign(p.CENTER, p.CENTER);
-    p.text(this.symbol.char, 0, 0);
-
-    p.drawingContext.shadowBlur = 0;
-    p.pop();
+    
+    // Draw reel background
+    p.fill(THEME.colors.darkBlue);
+    drawNeonRect(p, this.x, this.y, 
+                THEME.layout.reelWidth, 
+                THEME.layout.reelHeight,
+                THEME.colors.gold);
+    
+    // Draw symbol
+    drawNeonText(p, this.symbol.char,
+                this.x + THEME.layout.reelWidth/2,
+                this.y + THEME.layout.reelHeight/2,
+                THEME.colors.gold,
+                THEME.layout.reelWidth * 0.6);
   }
 
   spin() {
-    this.speed = this.p.random(15, 25);
-    this.symbol = THEME.symbols[Math.floor(this.p.random(THEME.symbols.length))];
-    this.scale = 0.95;
+    this.spinning = true;
+    this.symbol = THEME.symbols[Math.floor(Math.random() * THEME.symbols.length)];
   }
+}
 
-  update() {
-    if (this.speed > 0) {
-      this.rotation += this.speed * 0.1;
-      this.speed *= 0.9;
-      this.scale = this.p.lerp(this.scale, 1, 0.1);
-
-      if (this.speed < 0.1) {
-        this.speed = 0;
-        this.rotation = 0;
-        this.scale = 1;
-      }
-    }
-  }
-};
-
-window.SlotMachine = class SlotMachine {
+class SlotMachine {
   constructor(p) {
     this.p = p;
     this.reels = [];
+    this.credits = 1000;
+    this.currentBet = 20;
     this.spinning = false;
     this.soundManager = new SoundManager(p);
     this.winAmount = 0;
     this.winType = null;
     this.winAnimationFrame = 0;
-    this.init();
+    this.initReels();
     this.loadSounds();
   }
 
@@ -81,46 +54,46 @@ window.SlotMachine = class SlotMachine {
     this.soundManager.addSound('win', 'https://assets.mixkit.co/active_storage/sfx/2005/2005-preview.mp3');
   }
 
-  init() {
-    const centerX = this.p.width/2 - (THEME.ui.reelWidth + THEME.ui.spacing);
-    const centerY = this.p.height/2 - THEME.ui.reelHeight/2;
+  initReels() {
+    const startX = this.p.width/2 - (THEME.layout.reelWidth * 1.5 + THEME.layout.reelSpacing);
+    const startY = this.p.height/2 - THEME.layout.reelHeight/2;
     
-    this.reels = [];
     for (let i = 0; i < 3; i++) {
-      const x = centerX + (i * (THEME.ui.reelWidth + THEME.ui.spacing));
-      this.reels.push(new Reel(this.p, x, centerY));
+      this.reels.push(new Reel(
+        this.p,
+        startX + (THEME.layout.reelWidth + THEME.layout.reelSpacing) * i,
+        startY
+      ));
     }
   }
 
   draw() {
     const p = this.p;
     
-    // Machine frame
-    p.drawingContext.shadowBlur = THEME.ui.glowStrength * 1.5;
-    p.drawingContext.shadowColor = THEME.colors.gold.toString();
-    p.fill(25, 35, 60);
-    p.stroke(255, 215, 0);
-    p.strokeWeight(3);
-    p.rect(p.width/2 - (THEME.ui.reelWidth * 2), 
-           p.height/2 - THEME.ui.reelHeight * 1.2,
-           THEME.ui.reelWidth * 4,
-           THEME.ui.reelHeight * 2.4,
-           THEME.ui.cornerRadius * 2);
-
-    // Title
-    p.fill(255, 215, 0);
-    p.noStroke();
-    p.textSize(48);
-    p.textAlign(p.CENTER, p.CENTER);
-    p.text("Egyptian Fortune", p.width/2, p.height/2 - THEME.ui.reelHeight * 1.5);
-
-    // Update and draw reels
-    for (let reel of this.reels) {
-      reel.update();
-      reel.draw();
-    }
-
+    // Draw main frame
+    this.drawFrame();
+    
+    // Draw title
+    drawNeonText(p, "Egyptian Fortune",
+                p.width/2, 80,
+                THEME.colors.gold, 64,
+                THEME.glow.strong);
+    
+    // Draw credits
+    drawNeonText(p, `${this.credits} Credits`,
+                p.width/2, 150,
+                THEME.colors.neonGold, 36);
+    
+    // Draw reels
+    this.reels.forEach(reel => reel.draw());
+    
+    // Draw spin button
     this.drawSpinButton();
+    
+    // Draw control panel
+    this.drawControlPanel();
+
+    // Draw mute button
     this.drawMuteButton();
 
     // Draw win animation if active
@@ -130,108 +103,70 @@ window.SlotMachine = class SlotMachine {
     }
   }
 
-  checkWin() {
-    // Count matching symbols
-    const symbolCounts = {};
-    let maxCount = 0;
-    let winningSymbol = null;
-
-    // Count occurrences of each symbol
-    for (let reel of this.reels) {
-      const symbol = reel.symbol;
-      symbolCounts[symbol.char] = (symbolCounts[symbol.char] || 0) + 1;
-      
-      if (symbolCounts[symbol.char] > maxCount) {
-        maxCount = symbolCounts[symbol.char];
-        winningSymbol = symbol;
-      }
-    }
-
-    // Determine win type based on matches
-    this.winAmount = 0;
-    this.winType = null;
-
-    if (maxCount >= 2) {
-      if (maxCount === 5) {
-        this.winType = 'jackpot';
-        this.winAmount = THEME.winTypes.jackpot.value;
-      } else if (maxCount === 4) {
-        this.winType = 'bigWin';
-        this.winAmount = THEME.winTypes.bigWin.value;
-      } else if (maxCount === 3) {
-        this.winType = 'mediumWin';
-        this.winAmount = THEME.winTypes.mediumWin.value;
-      } else {
-        this.winType = 'smallWin';
-        this.winAmount = THEME.winTypes.smallWin.value;
-      }
-
-      // Bonus for special symbols
-      if (winningSymbol.isSpecial) {
-        this.winAmount *= 2;
-      }
-
-      // Play appropriate win sound
-      this.soundManager.playWinSound(this.winType);
-      this.winAnimationFrame = 60; // 1 second at 60fps
-    }
-  }
-
-  drawWinAnimation() {
+  drawFrame() {
     const p = this.p;
+    const frameWidth = THEME.layout.reelWidth * 3 + THEME.layout.reelSpacing * 4;
+    const frameHeight = THEME.layout.reelHeight + 100;
     
-    // Create glowing effect
-    p.drawingContext.shadowBlur = 20;
-    p.drawingContext.shadowColor = THEME.colors.gold.toString();
-    
-    // Win text
-    p.textSize(48);
-    p.textAlign(p.CENTER, p.CENTER);
-    p.fill(THEME.colors.gold);
-    
-    let winText = '';
-    switch(this.winType) {
-      case 'jackpot':
-        winText = 'JACKPOT!';
-        break;
-      case 'bigWin':
-        winText = 'BIG WIN!';
-        break;
-      case 'mediumWin':
-        winText = 'GREAT WIN!';
-        break;
-      case 'smallWin':
-        winText = 'WIN!';
-        break;
-    }
-
-    // Animate win text
-    const bounce = Math.sin(this.winAnimationFrame * 0.1) * 10;
-    p.text(winText, p.width/2, p.height/2 - 150 + bounce);
-    p.textSize(32);
-    p.text(`${this.winAmount} Credits`, p.width/2, p.height/2 - 100 + bounce);
-    
-    p.drawingContext.shadowBlur = 0;
+    // Main frame
+    drawNeonRect(p,
+                p.width/2 - frameWidth/2,
+                p.height/2 - frameHeight/2,
+                frameWidth, frameHeight,
+                THEME.colors.gold,
+                THEME.glow.strong);
   }
 
   drawSpinButton() {
     const p = this.p;
-    const buttonY = p.height/2 + THEME.ui.reelHeight * 0.8;
+    const buttonY = p.height/2 + THEME.layout.reelHeight/2 + 40;
     
-    p.drawingContext.shadowBlur = THEME.ui.glowStrength;
-    p.drawingContext.shadowColor = this.spinning ? 
-      THEME.colors.sandDark.toString() : 
-      THEME.colors.accent.toString();
+    // Button background
+    p.fill(this.spinning ? THEME.colors.darkBlue : THEME.colors.orange);
+    drawNeonRect(p,
+                p.width/2 - 80,
+                buttonY,
+                160, 60,
+                THEME.colors.gold);
     
-    p.fill(this.spinning ? THEME.colors.nightSky : THEME.colors.accent);
-    p.stroke(255, 215, 0);
-    p.rect(p.width/2 - 60, buttonY, 120, 40, 20);
+    // Button text
+    drawNeonText(p,
+                this.spinning ? "SPINNING..." : "SPIN",
+                p.width/2,
+                buttonY + 30,
+                THEME.colors.white,
+                28);
+  }
+
+  drawControlPanel() {
+    const p = this.p;
+    const y = p.height - THEME.layout.controlHeight;
     
-    p.fill(255, 243, 224);
-    p.noStroke();
-    p.textSize(20);
-    p.textAlign(p.CENTER, p.CENTER);
-    p.text(this.spinning ? "SPINNING..." : "SPIN", p.width/2, buttonY + 20);
+    // Panel background
+    p.fill(THEME.colors.darkBlue);
+    drawNeonRect(p, 0, y,
+                p.width, THEME.layout.controlHeight,
+                THEME.colors.gold);
+    
+    // Control buttons
+    const buttons = ['INFO', 'LINES', 'BET', 'MAX BET'];
+    const startX = p.width/2 - (buttons.length * THEME.layout.buttonWidth)/2;
+    
+    buttons.forEach((label, i) => {
+      const x = startX + i * THEME.layout.buttonWidth;
+      
+      p.fill(THEME.colors.orange);
+      drawNeonRect(p, x + 10, y + 30,
+                  THEME.layout.buttonWidth - 20,
+                  THEME.layout.buttonHeight,
+                  THEME.colors.gold);
+      
+      drawNeonText(p, label,
+                  x + THEME.layout.buttonWidth/2,
+                  y + 60,
+                  THEME.colors.white,
+                  24);
+    });
   }
 
   drawMuteButton() {
@@ -262,6 +197,101 @@ window.SlotMachine = class SlotMachine {
     p.pop();
   }
 
+  drawWinAnimation() {
+    const p = this.p;
+    
+    // Create glowing effect
+    p.drawingContext.shadowBlur = 20;
+    p.drawingContext.shadowColor = THEME.colors.gold.toString();
+    
+    // Win text
+    let winText = '';
+    switch(this.winType) {
+      case 'jackpot':
+        winText = 'JACKPOT!';
+        break;
+      case 'bigWin':
+        winText = 'BIG WIN!';
+        break;
+      case 'mediumWin':
+        winText = 'GREAT WIN!';
+        break;
+      case 'smallWin':
+        winText = 'WIN!';
+        break;
+    }
+
+    // Animate win text
+    const bounce = Math.sin(this.winAnimationFrame * 0.1) * 10;
+    drawNeonText(p, winText,
+                p.width/2, p.height/2 - 150 + bounce,
+                THEME.colors.gold, 48);
+    drawNeonText(p, `${this.winAmount} Credits`,
+                p.width/2, p.height/2 - 100 + bounce,
+                THEME.colors.neonGold, 32);
+    
+    p.drawingContext.shadowBlur = 0;
+  }
+
+  spin() {
+    if (this.spinning) return;
+    
+    this.spinning = true;
+    this.soundManager.play('spin');
+    this.credits -= this.currentBet;
+    
+    this.reels.forEach(reel => reel.spin());
+    
+    setTimeout(() => {
+      this.spinning = false;
+      this.soundManager.play('stop');
+      this.checkWin();
+    }, 2000);
+  }
+
+  checkWin() {
+    // Count matching symbols
+    const symbolCounts = {};
+    let maxCount = 0;
+    let winningSymbol = null;
+
+    // Count occurrences of each symbol
+    for (let reel of this.reels) {
+      const symbol = reel.symbol;
+      symbolCounts[symbol.char] = (symbolCounts[symbol.char] || 0) + 1;
+      
+      if (symbolCounts[symbol.char] > maxCount) {
+        maxCount = symbolCounts[symbol.char];
+        winningSymbol = symbol;
+      }
+    }
+
+    // Determine win type based on matches
+    this.winAmount = 0;
+    this.winType = null;
+
+    if (maxCount >= 2) {
+      if (maxCount === 3) {
+        this.winType = 'mediumWin';
+        this.winAmount = this.currentBet * 5;
+      } else if (maxCount === 2) {
+        this.winType = 'smallWin';
+        this.winAmount = this.currentBet * 2;
+      }
+
+      // Bonus for special symbols
+      if (winningSymbol.isSpecial) {
+        this.winAmount *= 2;
+      }
+
+      this.credits += this.winAmount;
+
+      // Play appropriate win sound
+      this.soundManager.playWinSound(this.winType);
+      this.winAnimationFrame = 60; // 1 second at 60fps
+    }
+  }
+
   handleClick(mx, my) {
     // Check mute button
     const buttonSize = 40;
@@ -275,34 +305,13 @@ window.SlotMachine = class SlotMachine {
       return;
     }
 
-    // Check spin button
-    const buttonY = this.p.height/2 + THEME.ui.reelHeight * 0.8;
-    if (mx > this.p.width/2 - 60 && mx < this.p.width/2 + 60 &&
-        my > buttonY && my < buttonY + 40) {
+    const buttonY = this.p.height/2 + THEME.layout.reelHeight/2 + 40;
+    
+    if (mx > this.p.width/2 - 80 &&
+        mx < this.p.width/2 + 80 &&
+        my > buttonY &&
+        my < buttonY + 60) {
       this.spin();
     }
   }
-
-  spin() {
-    if (this.spinning) return;
-    
-    this.spinning = true;
-    this.soundManager.play('spin');
-    
-    for (let reel of this.reels) {
-      reel.spin();
-    }
-
-    setTimeout(() => {
-      this.spinning = false;
-      this.soundManager.play('stop');
-      this.checkWin();
-    }, THEME.ui.spinDuration);
-  }
-
-  resize() {
-    this.init();
-  }
-};
-
-console.log('Objects loaded');
+}
