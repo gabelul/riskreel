@@ -1,19 +1,19 @@
 window.THEME = {
   colors: {
-    gold: '#FFD700',        // Primary gold
-    sandLight: '#FFF3E0',   // Light text
-    sandDark: '#A67C52',    // Dark accents
-    nileBlue: '#0D47A1',    // Deep blue
-    pyramidStone: '#8D6E63',// Stone color
-    nightSky: '#1A237E',    // Background
-    accent: '#FF5722'       // Highlight color
+    gold: color(255, 215, 0),        // Bright gold
+    sandLight: color(255, 243, 224),  // Light text
+    sandDark: color(166, 124, 82),    // Dark accents
+    nileBlue: color(13, 71, 161),     // Deep blue
+    pyramidStone: color(141, 110, 99),// Stone color
+    nightSky: color(25, 35, 60),      // Background
+    accent: color(255, 87, 34)        // Highlight color
   },
   symbols: [
-    { char: '☥', name: 'ankh', value: 100, color: '#FFD700' },
-    { char: '👁', name: 'eye', value: 75, color: '#FF5722' },
-    { char: '🔺', name: 'pyramid', value: 50, color: '#0D47A1' },
-    { char: '🪲', name: 'scarab', value: 25, color: '#4CAF50' },
-    { char: '⚘', name: 'lotus', value: 10, color: '#9C27B0' }
+    { char: '☥', name: 'ankh', value: 100 },
+    { char: '👁', name: 'eye', value: 75 },
+    { char: '🔺', name: 'pyramid', value: 50 },
+    { char: '🪲', name: 'scarab', value: 25 },
+    { char: '⚘', name: 'lotus', value: 10 }
   ],
   ui: {
     reelWidth: 100,
@@ -25,24 +25,15 @@ window.THEME = {
   }
 };
 
-// Utility functions
-window.createGlow = (color, strength) => {
-  drawingContext.shadowBlur = strength;
-  drawingContext.shadowColor = color;
-};
-
-window.clearGlow = () => {
-  drawingContext.shadowBlur = 0;
-};
-
-window.drawGlowingText = (text, x, y, color, size, glow = THEME.ui.glowStrength) => {
+window.drawGlowingText = (text, x, y, fillColor, size, glow = THEME.ui.glowStrength) => {
   push();
-  createGlow(color, glow);
-  fill(color);
+  drawingContext.shadowBlur = glow;
+  drawingContext.shadowColor = color(255, 215, 0).toString();
+  fill(fillColor);
   noStroke();
   textSize(size);
   textAlign(CENTER, CENTER);
   text(text, x, y);
-  clearGlow();
+  drawingContext.shadowBlur = 0;
   pop();
 };

@@ -17,24 +17,24 @@ class Reel {
     rotate(this.rotation);
     scale(this.scale);
 
-    // Reel background with glow
-    createGlow(THEME.colors.gold, THEME.ui.glowStrength);
-    fill(THEME.colors.nightSky);
-    stroke(THEME.colors.gold);
+    // Reel background
+    drawingContext.shadowBlur = THEME.ui.glowStrength;
+    drawingContext.shadowColor = THEME.colors.gold.toString();
+    fill(25, 35, 60); // Dark background
+    stroke(255, 215, 0); // Gold stroke
     strokeWeight(2);
     rect(-THEME.ui.reelWidth/2, -THEME.ui.reelHeight/2, 
          THEME.ui.reelWidth, THEME.ui.reelHeight, 
          THEME.ui.cornerRadius);
 
-    // Symbol with glow
-    createGlow(this.symbol.color, THEME.ui.glowStrength);
-    fill(this.symbol.color);
+    // Symbol
+    fill(255, 215, 0); // Gold symbol
     noStroke();
     textSize(THEME.ui.reelHeight * 0.6);
     textAlign(CENTER, CENTER);
     text(this.symbol.char, 0, 0);
 
-    clearGlow();
+    drawingContext.shadowBlur = 0;
     pop();
   }
 
@@ -78,23 +78,24 @@ class SlotMachine {
 
   draw() {
     // Machine frame
-    createGlow(THEME.colors.gold, THEME.ui.glowStrength * 1.5);
-    fill(THEME.colors.nightSky);
-    stroke(THEME.colors.gold);
+    drawingContext.shadowBlur = THEME.ui.glowStrength * 1.5;
+    drawingContext.shadowColor = color(255, 215, 0).toString();
+    fill(25, 35, 60); // Dark background
+    stroke(255, 215, 0); // Gold stroke
     strokeWeight(3);
     rect(width/2 - (THEME.ui.reelWidth * 2), 
          height/2 - THEME.ui.reelHeight * 1.2,
          THEME.ui.reelWidth * 4,
          THEME.ui.reelHeight * 2.4,
          THEME.ui.cornerRadius * 2);
-    clearGlow();
+    drawingContext.shadowBlur = 0;
 
     // Title
     drawGlowingText(
       "Egyptian Fortune",
       width/2,
       height/2 - THEME.ui.reelHeight * 1.5,
-      THEME.colors.gold,
+      color(255, 215, 0),
       48
     );
 
@@ -104,29 +105,31 @@ class SlotMachine {
       reel.draw();
     }
 
-    // Spin button
     this.drawSpinButton();
   }
 
   drawSpinButton() {
     const buttonY = height/2 + THEME.ui.reelHeight * 0.8;
     
-    // Button background with glow
-    createGlow(this.spinning ? THEME.colors.sandDark : THEME.colors.accent, 
-               THEME.ui.glowStrength);
-    fill(this.spinning ? THEME.colors.nightSky : THEME.colors.accent);
-    stroke(THEME.colors.gold);
+    // Button background
+    drawingContext.shadowBlur = THEME.ui.glowStrength;
+    drawingContext.shadowColor = this.spinning ? 
+      color(166, 124, 82).toString() : 
+      color(255, 87, 34).toString();
+    
+    fill(this.spinning ? color(25, 35, 60) : color(255, 87, 34));
+    stroke(255, 215, 0);
     rect(width/2 - 60, buttonY, 120, 40, 20);
-    clearGlow();
-
+    
     // Button text
     drawGlowingText(
       this.spinning ? "SPINNING..." : "SPIN",
       width/2,
       buttonY + 20,
-      THEME.colors.sandLight,
+      color(255, 243, 224),
       20
     );
+    drawingContext.shadowBlur = 0;
   }
 
   handleClick(mx, my) {
