@@ -1,3 +1,12 @@
+console.log('Helpers loaded');
+
+// Theme constants will go here later
+const THEME = {
+  colors: {
+    primary: '#F4D03F'
+  }
+};
+
 // Helper functions will go here
 function formatNumber(num) {
   return num.toLocaleString();
@@ -53,28 +62,6 @@ class SoundManager {
   toggleMute() {
     this.muted = !this.muted;
     return this.muted;
-  }
-}
-
-const THEME = {
-  colors: {
-    primary: '#F4D03F',      // Gold
-    secondary: '#2980B9',    // Royal Blue
-    accent: '#E67E22',       // Desert Orange
-    dark: '#34495E',         // Night Sky
-    light: '#ECF0F1',        // Sand Light
-    background: '#1C2833'    // Deep Night
-  },
-  fonts: {
-    title: 'Georgia',
-    body: 'Arial'
-  },
-  symbols: {
-    ankh: '☥',
-    eye: '👁',
-    pyramid: '🔺',
-    scarab: '🪲',
-    lotus: '⚘'
   }
 }
 

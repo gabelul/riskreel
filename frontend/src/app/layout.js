@@ -12,6 +12,9 @@ export default function RootLayout({ children }) {
       <head>
         <Script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/p5.min.js" strategy="beforeInteractive" />
         <Script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/addons/p5.sound.min.js" strategy="beforeInteractive" />
+        <Script src="/helpers.js" strategy="afterInteractive" />
+        <Script src="/objects.js" strategy="afterInteractive" />
+        <Script src="/sketch.js" strategy="afterInteractive" />
       </head>
       <body>{children}</body>
     </html>

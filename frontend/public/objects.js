@@ -1,3 +1,5 @@
+console.log('Objects loaded');
+
 // Game objects will go here
 class GameObject {
   constructor(x, y) {
@@ -144,8 +146,6 @@ function checkWinningLine(symbols) {
          symbols[1].current === symbols[2].current;
 }
 
-// ... rest of the existing code remains the same ...
-
 class SlotMachine {
   constructor() {
     this.reels = 3;
@@ -165,8 +165,6 @@ class SlotMachine {
     this.progressionSystem = new ProgressionSystem();
     this.playTime = 0;
   }
-
-  // ... rest of the existing methods remain the same ...
 
   draw() {
     // Increment play time
@@ -231,8 +229,4 @@ class SlotMachine {
     // Draw achievements
     this.achievementManager.draw();
   }
-
-  // ... rest of the existing methods remain the same ...
 }
-
-// ... rest of the existing code remains the same ...
