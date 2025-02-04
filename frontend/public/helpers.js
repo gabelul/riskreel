@@ -3,21 +3,56 @@ console.log('Loading helpers...');
 window.SoundManager = class SoundManager {
   constructor(p) {
     this.p = p;
-    this.sounds = {};
+    this.sounds = {
+      spin: null,
+      smallWin: null,
+      mediumWin: null,
+      bigWin: null,
+      jackpot: null,
+      stop: null
+    };
     this.muted = false;
+    this.loadSounds();
   }
 
-  addSound(name, url) {
+  loadSounds() {
+    // Basic game sounds
+    this.addSound('spin', 'https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3', 0.4);
+    this.addSound('stop', 'https://assets.mixkit.co/active_storage/sfx/2004/2004-preview.mp3', 0.3);
+    
+    // Win variations
+    this.addSound('smallWin', 'https://assets.mixkit.co/active_storage/sfx/2005/2005-preview.mp3', 0.4);
+    this.addSound('mediumWin', 'https://assets.mixkit.co/active_storage/sfx/2006/2006-preview.mp3', 0.5);
+    this.addSound('bigWin', 'https://assets.mixkit.co/active_storage/sfx/2007/2007-preview.mp3', 0.6);
+    this.addSound('jackpot', 'https://assets.mixkit.co/active_storage/sfx/2008/2008-preview.mp3', 0.7);
+  }
+
+  addSound(name, url, volume = 0.5) {
     this.p.loadSound(url, (sound) => {
       this.sounds[name] = sound;
-      sound.setVolume(0.5); // Set default volume to 50%
+      sound.setVolume(volume);
       console.log(`Loaded sound: ${name}`);
     });
   }
 
+  playWinSound(winType) {
+    if (this.muted) return;
+    
+    // Stop any playing win sounds
+    ['smallWin', 'mediumWin', 'bigWin', 'jackpot'].forEach(type => {
+      if (this.sounds[type] && this.sounds[type].isPlaying()) {
+        this.sounds[type].stop();
+      }
+    });
+
+    // Play appropriate win sound
+    if (this.sounds[winType]) {
+      this.sounds[winType].play();
+    }
+  }
+
   play(name) {
     if (!this.muted && this.sounds[name]) {
-      // Stop the sound if it's already playing
       if (this.sounds[name].isPlaying()) {
         this.sounds[name].stop();
       }
@@ -27,6 +62,14 @@ window.SoundManager = class SoundManager {
 
   toggleMute() {
     this.muted = !this.muted;
+    // Stop all sounds when muting
+    if (this.muted) {
+      Object.values(this.sounds).forEach(sound => {
+        if (sound && sound.isPlaying()) {
+          sound.stop();
+        }
+      });
+    }
     return this.muted;
   }
 };
@@ -43,12 +86,18 @@ window.initTheme = (p) => {
       nightSky: p.color(25, 35, 60),
       accent: p.color(255, 87, 34)
     },
+    winTypes: {
+      smallWin: { minMatch: 2, value: 10 },
+      mediumWin: { minMatch: 3, value: 50 },
+      bigWin: { minMatch: 4, value: 100 },
+      jackpot: { minMatch: 5, value: 500 }
+    },
     symbols: [
-      { char: '☥', name: 'ankh', value: 100 },
-      { char: '👁', name: 'eye', value: 75 },
-      { char: '🔺', name: 'pyramid', value: 50 },
-      { char: '🪲', name: 'scarab', value: 25 },
-      { char: '⚘', name: 'lotus', value: 10 }
+      { char: '☥', name: 'ankh', value: 100, isSpecial: true },
+      { char: '👁', name: 'eye', value: 75, isSpecial: false },
+      { char: '🔺', name: 'pyramid', value: 50, isSpecial: false },
+      { char: '🪲', name: 'scarab', value: 25, isSpecial: false },
+      { char: '⚘', name: 'lotus', value: 10, isSpecial: false }
     ],
     ui: {
       reelWidth: 100,

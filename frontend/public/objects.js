@@ -67,6 +67,9 @@ window.SlotMachine = class SlotMachine {
     this.reels = [];
     this.spinning = false;
     this.soundManager = new SoundManager(p);
+    this.winAmount = 0;
+    this.winType = null;
+    this.winAnimationFrame = 0;
     this.init();
     this.loadSounds();
   }
@@ -119,6 +122,96 @@ window.SlotMachine = class SlotMachine {
 
     this.drawSpinButton();
     this.drawMuteButton();
+
+    // Draw win animation if active
+    if (this.winAnimationFrame > 0) {
+      this.drawWinAnimation();
+      this.winAnimationFrame--;
+    }
+  }
+
+  checkWin() {
+    // Count matching symbols
+    const symbolCounts = {};
+    let maxCount = 0;
+    let winningSymbol = null;
+
+    // Count occurrences of each symbol
+    for (let reel of this.reels) {
+      const symbol = reel.symbol;
+      symbolCounts[symbol.char] = (symbolCounts[symbol.char] || 0) + 1;
+      
+      if (symbolCounts[symbol.char] > maxCount) {
+        maxCount = symbolCounts[symbol.char];
+        winningSymbol = symbol;
+      }
+    }
+
+    // Determine win type based on matches
+    this.winAmount = 0;
+    this.winType = null;
+
+    if (maxCount >= 2) {
+      if (maxCount === 5) {
+        this.winType = 'jackpot';
+        this.winAmount = THEME.winTypes.jackpot.value;
+      } else if (maxCount === 4) {
+        this.winType = 'bigWin';
+        this.winAmount = THEME.winTypes.bigWin.value;
+      } else if (maxCount === 3) {
+        this.winType = 'mediumWin';
+        this.winAmount = THEME.winTypes.mediumWin.value;
+      } else {
+        this.winType = 'smallWin';
+        this.winAmount = THEME.winTypes.smallWin.value;
+      }
+
+      // Bonus for special symbols
+      if (winningSymbol.isSpecial) {
+        this.winAmount *= 2;
+      }
+
+      // Play appropriate win sound
+      this.soundManager.playWinSound(this.winType);
+      this.winAnimationFrame = 60; // 1 second at 60fps
+    }
+  }
+
+  drawWinAnimation() {
+    const p = this.p;
+    
+    // Create glowing effect
+    p.drawingContext.shadowBlur = 20;
+    p.drawingContext.shadowColor = THEME.colors.gold.toString();
+    
+    // Win text
+    p.textSize(48);
+    p.textAlign(p.CENTER, p.CENTER);
+    p.fill(THEME.colors.gold);
+    
+    let winText = '';
+    switch(this.winType) {
+      case 'jackpot':
+        winText = 'JACKPOT!';
+        break;
+      case 'bigWin':
+        winText = 'BIG WIN!';
+        break;
+      case 'mediumWin':
+        winText = 'GREAT WIN!';
+        break;
+      case 'smallWin':
+        winText = 'WIN!';
+        break;
+    }
+
+    // Animate win text
+    const bounce = Math.sin(this.winAnimationFrame * 0.1) * 10;
+    p.text(winText, p.width/2, p.height/2 - 150 + bounce);
+    p.textSize(32);
+    p.text(`${this.winAmount} Credits`, p.width/2, p.height/2 - 100 + bounce);
+    
+    p.drawingContext.shadowBlur = 0;
   }
 
   drawSpinButton() {
@@ -205,17 +298,6 @@ window.SlotMachine = class SlotMachine {
       this.soundManager.play('stop');
       this.checkWin();
     }, THEME.ui.spinDuration);
-  }
-
-  checkWin() {
-    // Simple win check (all symbols match)
-    const firstSymbol = this.reels[0].symbol.char;
-    const isWin = this.reels.every(reel => reel.symbol.char === firstSymbol);
-    
-    if (isWin) {
-      this.soundManager.play('win');
-      // Add win animation here if desired
-    }
   }
 
   resize() {
