@@ -112,6 +112,60 @@ function checkWinningLine(symbols) {
          symbols[1].current === symbols[2].current;
 }
 
+class AchievementManager {
+  constructor() {
+    this.achievements = [
+      { name: 'First Spin', description: 'Complete your first spin', unlocked: false },
+      { name: 'Lucky Streak', description: 'Win 5 times in a row', unlocked: false },
+      { name: 'High Roller', description: 'Reach 2000 credits', unlocked: false }
+    ];
+    this.panelOpen = false;
+  }
+
+  checkAchievements(stats) {
+    if (stats.totalSpins > 0) {
+      this.achievements[0].unlocked = true;
+    }
+    
+    if (stats.wins >= 5) {
+      this.achievements[1].unlocked = true;
+    }
+    
+    if (stats.credits >= 2000) {
+      this.achievements[2].unlocked = true;
+    }
+  }
+
+  draw() {
+    if (!this.panelOpen) return;
+
+    fill(240);
+    rect(width - 250, 50, 230, 300, 10);
+    
+    fill(50);
+    textSize(18);
+    textAlign(CENTER, TOP);
+    text('Achievements', width - 135, 60);
+
+    textAlign(LEFT, TOP);
+    textSize(14);
+    for (let i = 0; i < this.achievements.length; i++) {
+      let achievement = this.achievements[i];
+      fill(achievement.unlocked ? color(0, 200, 0) : color(150));
+      text(`${achievement.name}: ${achievement.description}`, 
+            width - 240, 100 + i * 40);
+    }
+  }
+
+  checkButton(x, y) {
+    if (x > width - 50 && x < width - 20 && y > 10 && y < 40) {
+      this.panelOpen = !this.panelOpen;
+      return true;
+    }
+    return false;
+  }
+}
+
 class SlotMachine {
   constructor() {
     this.reels = 3;
@@ -126,6 +180,7 @@ class SlotMachine {
     this.stats = new StatsTracker();
     this.betAmount = 10;
     this.soundManager = new SoundManager();
+    this.achievements = new AchievementManager();
     this.setupSymbols();
   }
 
@@ -173,6 +228,7 @@ class SlotMachine {
     }
     
     this.stats.addSpin(isWin, winAmount);
+    this.achievements.checkAchievements(this.stats);
   }
 
   calculateWinAmount() {
@@ -230,6 +286,17 @@ class SlotMachine {
     textAlign(CENTER, CENTER);
     text(this.soundManager.muted ? '🔇' : '🔊', width - 30, 30);
 
+    // Add achievements button
+    fill(150);
+    circle(width - 35, 20, 20);
+    fill(255);
+    textSize(12);
+    textAlign(CENTER, CENTER);
+    text('🏆', width - 35, 20);
+
+    // Draw achievements
+    this.achievements.draw();
+
     // Responsible gaming message
     fill(150);
     textSize(16);
@@ -249,6 +316,11 @@ class SlotMachine {
     // Check mute button
     if (dist(x, y, width - 30, 30) < 15) {
       return 'mute';
+    }
+
+    // Check achievement panel button
+    if (this.achievements.checkButton(x, y)) {
+      return 'achievements';
     }
     
     return null;

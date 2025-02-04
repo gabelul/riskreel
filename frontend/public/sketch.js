@@ -26,10 +26,11 @@ function windowResized() {
 function draw() {
   background(245);
   
-  // Update play time
+  // Update play time and achievements
   if (millis() - lastUpdate >= 1000) {
     playTime++;
     lastUpdate = millis();
+    slotMachine.achievements.update(slotMachine.stats, playTime);
   }
   
   slotMachine.draw();
@@ -49,6 +50,8 @@ function mousePressed() {
     slotMachine.spin();
   } else if (action === 'mute') {
     slotMachine.soundManager.toggleMute();
+  } else if (action === 'achievements') {
+    slotMachine.achievements.togglePanel();
   }
 }
 
