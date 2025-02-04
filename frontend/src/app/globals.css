@@ -15,9 +15,9 @@ html, body {
 }
 
 #sketch-container {
-  position: relative;
   width: 100vw;
   height: 100vh;
+  position: relative;
 }
 
 canvas {

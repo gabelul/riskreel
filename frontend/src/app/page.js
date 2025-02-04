@@ -6,7 +6,7 @@ export default function Home() {
       width: '100vw',
       height: '100vh',
       overflow: 'hidden',
-      position: 'relative'
+      background: '#000'
     }}>
     </main>
   )
