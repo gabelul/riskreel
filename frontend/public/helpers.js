@@ -19,3 +19,26 @@ function calculateWinProbability(wins, totalSpins) {
 function formatCredits(amount) {
   return amount.toLocaleString();
 }
+
+class SoundManager {
+  constructor() {
+    this.sounds = {};
+    this.muted = false;
+  }
+
+  addSound(name, sound) {
+    this.sounds[name] = sound;
+    this.sounds[name].setVolume(0.5); // Set default volume to 50%
+  }
+
+  play(name) {
+    if (!this.muted && this.sounds[name]) {
+      this.sounds[name].play();
+    }
+  }
+
+  toggleMute() {
+    this.muted = !this.muted;
+    return this.muted;
+  }
+}

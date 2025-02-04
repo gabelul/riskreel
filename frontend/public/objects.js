@@ -85,6 +85,33 @@ class StatsTracker {
   }
 }
 
+class SoundManager {
+  constructor() {
+    this.sounds = {};
+    this.muted = false;
+  }
+
+  addSound(name, soundFile) {
+    this.sounds[name] = soundFile;
+  }
+
+  play(name) {
+    if (!this.muted && this.sounds[name]) {
+      this.sounds[name].play();
+    }
+  }
+
+  toggleMute() {
+    this.muted = !this.muted;
+  }
+}
+
+function checkWinningLine(symbols) {
+  // Check if all symbols are the same
+  return symbols[0].current === symbols[1].current && 
+         symbols[1].current === symbols[2].current;
+}
+
 class SlotMachine {
   constructor() {
     this.reels = 3;
@@ -98,7 +125,14 @@ class SlotMachine {
     };
     this.stats = new StatsTracker();
     this.betAmount = 10;
+    this.soundManager = new SoundManager();
     this.setupSymbols();
+  }
+
+  setSounds(spinStart, spinStop, win) {
+    this.soundManager.addSound('spin', spinStart);
+    this.soundManager.addSound('stop', spinStop);
+    this.soundManager.addSound('win', win);
   }
 
   setupSymbols() {
@@ -115,6 +149,7 @@ class SlotMachine {
     if (this.spinning || this.stats.credits < this.betAmount) return;
     
     this.spinning = true;
+    this.soundManager.play('spin');
     
     for (let symbol of this.symbols) {
       symbol.speed = random(15, 25);
@@ -124,20 +159,20 @@ class SlotMachine {
 
     setTimeout(() => {
       this.spinning = false;
+      this.soundManager.play('stop');
       this.checkWin();
     }, 2000);
   }
 
   checkWin() {
-    const isWin = this.checkWinningLine();
+    const isWin = checkWinningLine(this.symbols);
     const winAmount = isWin ? this.calculateWinAmount() : 0;
+    
+    if (isWin) {
+      this.soundManager.play('win');
+    }
+    
     this.stats.addSpin(isWin, winAmount);
-  }
-
-  checkWinningLine() {
-    // Check if all symbols are the same
-    return this.symbols[0].current === this.symbols[1].current && 
-           this.symbols[1].current === this.symbols[2].current;
   }
 
   calculateWinAmount() {
@@ -187,6 +222,14 @@ class SlotMachine {
     // Draw stats
     this.stats.draw();
 
+    // Add mute button
+    fill(this.soundManager.muted ? 'red' : 'green');
+    circle(width - 30, 30, 30);
+    fill(255);
+    textSize(12);
+    textAlign(CENTER, CENTER);
+    text(this.soundManager.muted ? '🔇' : '🔊', width - 30, 30);
+
     // Responsible gaming message
     fill(150);
     textSize(16);
@@ -195,10 +238,20 @@ class SlotMachine {
   }
 
   checkButton(x, y) {
-    return (x > this.spinButton.x - this.spinButton.w/2 &&
-            x < this.spinButton.x + this.spinButton.w/2 &&
-            y > this.spinButton.y - this.spinButton.h/2 &&
-            y < this.spinButton.y + this.spinButton.h/2);
+    // Check spin button
+    if (x > this.spinButton.x - this.spinButton.w/2 &&
+        x < this.spinButton.x + this.spinButton.w/2 &&
+        y > this.spinButton.y - this.spinButton.h/2 &&
+        y < this.spinButton.y + this.spinButton.h/2) {
+      return 'spin';
+    }
+    
+    // Check mute button
+    if (dist(x, y, width - 30, 30) < 15) {
+      return 'mute';
+    }
+    
+    return null;
   }
 }
 

@@ -1,10 +1,20 @@
 let slotMachine;
 let playTime = 0;
 let lastUpdate = 0;
+let spinSound, stopSound, winSound;
+
+function preload() {
+  // Load sound files
+  soundFormats('mp3');
+  spinSound = loadSound('https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3');
+  stopSound = loadSound('https://assets.mixkit.co/active_storage/sfx/2004/2004-preview.mp3');
+  winSound = loadSound('https://assets.mixkit.co/active_storage/sfx/2005/2005-preview.mp3');
+}
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   slotMachine = new SlotMachine();
+  slotMachine.setSounds(spinSound, stopSound, winSound);
   lastUpdate = millis();
 }
 
@@ -33,8 +43,12 @@ function draw() {
 }
 
 function mousePressed() {
-  if (slotMachine.checkButton(mouseX, mouseY)) {
+  const action = slotMachine.checkButton(mouseX, mouseY);
+  
+  if (action === 'spin') {
     slotMachine.spin();
+  } else if (action === 'mute') {
+    slotMachine.soundManager.toggleMute();
   }
 }
 
