@@ -66,7 +66,16 @@ window.SlotMachine = class SlotMachine {
     this.p = p;
     this.reels = [];
     this.spinning = false;
+    this.soundManager = new SoundManager(p);
     this.init();
+    this.loadSounds();
+  }
+
+  loadSounds() {
+    // Load sound effects
+    this.soundManager.addSound('spin', 'https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3');
+    this.soundManager.addSound('stop', 'https://assets.mixkit.co/active_storage/sfx/2004/2004-preview.mp3');
+    this.soundManager.addSound('win', 'https://assets.mixkit.co/active_storage/sfx/2005/2005-preview.mp3');
   }
 
   init() {
@@ -109,6 +118,7 @@ window.SlotMachine = class SlotMachine {
     }
 
     this.drawSpinButton();
+    this.drawMuteButton();
   }
 
   drawSpinButton() {
@@ -131,7 +141,48 @@ window.SlotMachine = class SlotMachine {
     p.text(this.spinning ? "SPINNING..." : "SPIN", p.width/2, buttonY + 20);
   }
 
+  drawMuteButton() {
+    const p = this.p;
+    const buttonSize = 40;
+    const padding = 20;
+    
+    p.push();
+    p.drawingContext.shadowBlur = THEME.ui.glowStrength;
+    p.drawingContext.shadowColor = THEME.colors.gold.toString();
+    
+    // Button background
+    p.fill(this.soundManager.muted ? THEME.colors.sandDark : THEME.colors.gold);
+    p.stroke(THEME.colors.gold);
+    p.circle(p.width - padding - buttonSize/2, 
+            padding + buttonSize/2, 
+            buttonSize);
+    
+    // Mute icon
+    p.fill(THEME.colors.nightSky);
+    p.noStroke();
+    p.textSize(20);
+    p.textAlign(p.CENTER, p.CENTER);
+    p.text(this.soundManager.muted ? '🔇' : '🔊', 
+           p.width - padding - buttonSize/2,
+           padding + buttonSize/2);
+    
+    p.pop();
+  }
+
   handleClick(mx, my) {
+    // Check mute button
+    const buttonSize = 40;
+    const padding = 20;
+    const d = this.p.dist(mx, my, 
+                         this.p.width - padding - buttonSize/2,
+                         padding + buttonSize/2);
+    
+    if (d < buttonSize/2) {
+      this.soundManager.toggleMute();
+      return;
+    }
+
+    // Check spin button
     const buttonY = this.p.height/2 + THEME.ui.reelHeight * 0.8;
     if (mx > this.p.width/2 - 60 && mx < this.p.width/2 + 60 &&
         my > buttonY && my < buttonY + 40) {
@@ -143,13 +194,28 @@ window.SlotMachine = class SlotMachine {
     if (this.spinning) return;
     
     this.spinning = true;
+    this.soundManager.play('spin');
+    
     for (let reel of this.reels) {
       reel.spin();
     }
 
     setTimeout(() => {
       this.spinning = false;
+      this.soundManager.play('stop');
+      this.checkWin();
     }, THEME.ui.spinDuration);
+  }
+
+  checkWin() {
+    // Simple win check (all symbols match)
+    const firstSymbol = this.reels[0].symbol.char;
+    const isWin = this.reels.every(reel => reel.symbol.char === firstSymbol);
+    
+    if (isWin) {
+      this.soundManager.play('win');
+      // Add win animation here if desired
+    }
   }
 
   resize() {

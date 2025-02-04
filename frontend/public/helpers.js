@@ -1,5 +1,36 @@
 console.log('Loading helpers...');
 
+window.SoundManager = class SoundManager {
+  constructor(p) {
+    this.p = p;
+    this.sounds = {};
+    this.muted = false;
+  }
+
+  addSound(name, url) {
+    this.p.loadSound(url, (sound) => {
+      this.sounds[name] = sound;
+      sound.setVolume(0.5); // Set default volume to 50%
+      console.log(`Loaded sound: ${name}`);
+    });
+  }
+
+  play(name) {
+    if (!this.muted && this.sounds[name]) {
+      // Stop the sound if it's already playing
+      if (this.sounds[name].isPlaying()) {
+        this.sounds[name].stop();
+      }
+      this.sounds[name].play();
+    }
+  }
+
+  toggleMute() {
+    this.muted = !this.muted;
+    return this.muted;
+  }
+};
+
 // Wait for p5.js to be available
 window.initTheme = (p) => {
   window.THEME = {

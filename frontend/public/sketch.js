@@ -3,6 +3,10 @@ console.log('Loading sketch...');
 new p5(function(p) {
   let slotMachine;
 
+  p.preload = function() {
+    // Sound loading will happen in SlotMachine constructor
+  };
+
   p.setup = function() {
     const canvas = p.createCanvas(p.windowWidth, p.windowHeight);
     canvas.parent('sketch-container');
@@ -10,7 +14,7 @@ new p5(function(p) {
     // Initialize theme with p5 instance
     window.initTheme(p);
     
-    // Create slot machine
+    // Create slot machine with sound support
     slotMachine = new SlotMachine(p);
   };
 
