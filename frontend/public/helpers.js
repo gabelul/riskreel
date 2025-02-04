@@ -1,4 +1,12 @@
-console.log('Helpers loaded');
+console.log('Helpers loading...');
+
+window.THEME = {
+  colors: {
+    primary: '#F4D03F',
+    secondary: '#2980B9', 
+    background: '#000000'
+  }
+};
 
 // Theme constants will go here later
 const THEME = {
@@ -90,3 +98,5 @@ class UIElement {
     drawingContext.shadowBlur = 0;
   }
 }
+
+console.log('Helpers loaded!');

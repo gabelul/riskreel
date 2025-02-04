@@ -1,15 +1,13 @@
-console.log('Objects loaded');
+console.log('Objects loading...');
 
-// Game objects will go here
-class GameObject {
+window.GameObject = class GameObject {
   constructor(x, y) {
     this.x = x;
     this.y = y;
   }
 }
 
-// Any objects types go here
-
+// Game objects will go here
 class Symbol {
   constructor(x, y, size) {
     this.x = x;
@@ -230,3 +228,5 @@ class SlotMachine {
     this.achievementManager.draw();
   }
 }
+
+console.log('Objects loaded!');
