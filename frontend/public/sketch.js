@@ -1,30 +1,38 @@
-console.log('Sketch loading...');
+let slotMachine;
 
 function setup() {
-  console.log('Setup running...');
   let canvas = createCanvas(windowWidth, windowHeight);
   canvas.parent('sketch-container');
-  console.log('Canvas created:', windowWidth, 'x', windowHeight);
+  slotMachine = new SlotMachine();
 }
 
 function windowResized() {
-  console.log('Window resized...');
   resizeCanvas(windowWidth, windowHeight);
+  slotMachine.setupReels();
 }
 
 function draw() {
-  background(0);
+  // Gradient background
+  let gradient = drawingContext.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, THEME.colors.background);
+  gradient.addColorStop(1, THEME.colors.dark);
+  drawingContext.fillStyle = gradient;
+  rect(0, 0, width, height);
   
-  // Test circle
-  fill(255);
+  // Draw pyramid silhouette
+  fill(0, 20);
   noStroke();
-  circle(width/2, height/2, 100);
+  triangle(
+    width/2, height * 0.1,
+    width * 0.2, height * 0.9,
+    width * 0.8, height * 0.9
+  );
   
-  // Test text
-  fill(255);
-  textSize(32);
-  textAlign(CENTER, CENTER);
-  text('Canvas Working!', width/2, height/2 - 100);
+  slotMachine.draw();
 }
 
-console.log('Sketch loaded!');
+function mousePressed() {
+  if (slotMachine.checkSpin(mouseX, mouseY)) {
+    slotMachine.spin();
+  }
+}
