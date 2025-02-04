@@ -50,3 +50,51 @@ class SoundManager {
     return this.muted;
   }
 }
+
+const THEME = {
+  colors: {
+    primary: '#F4D03F',      // Gold
+    secondary: '#2980B9',    // Royal Blue
+    accent: '#E67E22',       // Desert Orange
+    dark: '#34495E',         // Night Sky
+    light: '#ECF0F1',        // Sand Light
+    background: '#1C2833'    // Deep Night
+  },
+  fonts: {
+    title: 'Georgia',
+    body: 'Arial'
+  },
+  symbols: {
+    ankh: '☥',
+    eye: '👁',
+    pyramid: '🔺',
+    scarab: '🪲',
+    lotus: '⚘'
+  }
+}
+
+class UIElement {
+  constructor(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.hover = false;
+  }
+
+  isMouseOver(mx, my) {
+    return (mx > this.x && mx < this.x + this.w &&
+            my > this.y && my < this.y + this.h);
+  }
+
+  drawGlowingBorder(color, strength = 20) {
+    drawingContext.shadowBlur = strength;
+    drawingContext.shadowColor = color;
+    drawingContext.shadowOffsetX = 0;
+    drawingContext.shadowOffsetY = 0;
+  }
+
+  clearGlow() {
+    drawingContext.shadowBlur = 0;
+  }
+}

@@ -13,6 +13,7 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  textFont(THEME.fonts.body);
   slotMachine = new SlotMachine();
   slotMachine.setSounds(spinSound, stopSound, winSound);
   lastUpdate = millis();
@@ -34,6 +35,10 @@ function draw() {
   }
   
   slotMachine.draw();
+  
+  // Mouse interaction
+  slotMachine.spinButton.hover = 
+    slotMachine.spinButton.isMouseOver(mouseX, mouseY);
   
   // Draw session timer and win rate
   fill(100);
