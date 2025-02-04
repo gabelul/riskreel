@@ -20,6 +20,14 @@ function formatCredits(amount) {
   return amount.toLocaleString();
 }
 
+function formatMultiplier(value) {
+  return `${value.toFixed(1)}x`;
+}
+
+function calculateRequiredExperience(level) {
+  return Math.round(100 * Math.pow(1.5, level - 1));
+}
+
 class SoundManager {
   constructor() {
     this.sounds = {};

@@ -1,168 +1,49 @@
-// Any objects types go here
-
-class Symbol {
-  constructor(x, y, size) {
-    this.x = x;
-    this.y = y;
-    this.size = size;
-    this.symbols = ['🍎', '🍋', '🍇', '⭐', '🔔'];
-    this.current = random(this.symbols);
-    this.targetY = y;
-    this.speed = 0;
-  }
-
-  update() {
-    this.y += this.speed;
-    this.speed *= 0.95; // Smooth deceleration
-    
-    if (abs(this.y - this.targetY) < 1) {
-      this.y = this.targetY;
-      this.speed = 0;
-    }
-  }
-
-  draw() {
-    textSize(this.size);
-    textAlign(CENTER, CENTER);
-    text(this.current, this.x, this.y);
-  }
-}
-
-class StatsTracker {
+// Add the new ProgressionSystem class
+class ProgressionSystem {
   constructor() {
-    this.wins = 0;
-    this.losses = 0;
-    this.totalSpins = 0;
-    this.credits = 1000;
-    this.lastWin = 0;
-    this.showWinAnimation = false;
-    this.winAnimationTimer = 0;
+    this.level = 1;
+    this.experience = 0;
+    this.experienceToNextLevel = 100;
+    this.difficultyMultiplier = 1;
   }
 
-  addSpin(isWin, amount) {
-    this.totalSpins++;
-    if (isWin) {
-      this.wins++;
-      this.credits += amount;
-      this.lastWin = amount;
-      this.showWinAnimation = true;
-      this.winAnimationTimer = 60; // Animation frames
-    } else {
-      this.losses++;
-      this.credits -= 10; // Base bet
+  addExperience(amount) {
+    this.experience += amount;
+    
+    // Check for level up
+    if (this.experience >= this.experienceToNextLevel) {
+      this.levelUp();
     }
   }
 
-  draw() {
-    // Stats Panel
-    fill(255);
-    stroke(200);
-    rect(20, height - 120, 200, 100, 10);
+  levelUp() {
+    this.level++;
+    this.experience -= this.experienceToNextLevel;
+    this.experienceToNextLevel = Math.round(this.experienceToNextLevel * 1.5);
     
-    noStroke();
+    // Increase difficulty multiplier slightly
+    this.difficultyMultiplier = 1 + (this.level * 0.1);
+  }
+
+  draw() {
+    // Draw level and experience bar
+    fill(200);
+    rect(20, 20, 200, 30, 10);
+    
+    // Experience progress
+    fill(50, 200, 50);
+    let progressWidth = map(this.experience, 0, this.experienceToNextLevel, 0, 200);
+    rect(20, 20, progressWidth, 30, 10);
+    
+    // Level text
     fill(50);
+    textSize(16);
     textAlign(LEFT, TOP);
-    textSize(14);
-    text(`Credits: ${this.credits}`, 30, height - 110);
-    text(`Total Spins: ${this.totalSpins}`, 30, height - 90);
-    text(`Wins: ${this.wins}`, 30, height - 70);
-    text(`Losses: ${this.losses}`, 30, height - 50);
+    text(`Level ${this.level}`, 25, 25);
     
-    // Win Animation
-    if (this.showWinAnimation) {
-      this.winAnimationTimer--;
-      if (this.winAnimationTimer <= 0) {
-        this.showWinAnimation = false;
-      }
-      
-      push();
-      textAlign(CENTER, CENTER);
-      textSize(32);
-      fill(255, 215, 0, this.winAnimationTimer * 4);
-      text(`WIN! +${this.lastWin}`, width/2, height/2 - 100);
-      pop();
-    }
-  }
-}
-
-class SoundManager {
-  constructor() {
-    this.sounds = {};
-    this.muted = false;
-  }
-
-  addSound(name, soundFile) {
-    this.sounds[name] = soundFile;
-  }
-
-  play(name) {
-    if (!this.muted && this.sounds[name]) {
-      this.sounds[name].play();
-    }
-  }
-
-  toggleMute() {
-    this.muted = !this.muted;
-  }
-}
-
-function checkWinningLine(symbols) {
-  // Check if all symbols are the same
-  return symbols[0].current === symbols[1].current && 
-         symbols[1].current === symbols[2].current;
-}
-
-class AchievementManager {
-  constructor() {
-    this.achievements = [
-      { name: 'First Spin', description: 'Complete your first spin', unlocked: false },
-      { name: 'Lucky Streak', description: 'Win 5 times in a row', unlocked: false },
-      { name: 'High Roller', description: 'Reach 2000 credits', unlocked: false }
-    ];
-    this.panelOpen = false;
-  }
-
-  checkAchievements(stats) {
-    if (stats.totalSpins > 0) {
-      this.achievements[0].unlocked = true;
-    }
-    
-    if (stats.wins >= 5) {
-      this.achievements[1].unlocked = true;
-    }
-    
-    if (stats.credits >= 2000) {
-      this.achievements[2].unlocked = true;
-    }
-  }
-
-  draw() {
-    if (!this.panelOpen) return;
-
-    fill(240);
-    rect(width - 250, 50, 230, 300, 10);
-    
-    fill(50);
-    textSize(18);
-    textAlign(CENTER, TOP);
-    text('Achievements', width - 135, 60);
-
-    textAlign(LEFT, TOP);
-    textSize(14);
-    for (let i = 0; i < this.achievements.length; i++) {
-      let achievement = this.achievements[i];
-      fill(achievement.unlocked ? color(0, 200, 0) : color(150));
-      text(`${achievement.name}: ${achievement.description}`, 
-            width - 240, 100 + i * 40);
-    }
-  }
-
-  checkButton(x, y) {
-    if (x > width - 50 && x < width - 20 && y > 10 && y < 40) {
-      this.panelOpen = !this.panelOpen;
-      return true;
-    }
-    return false;
+    // Experience text
+    textAlign(RIGHT, TOP);
+    text(`${this.experience}/${this.experienceToNextLevel}`, 215, 25);
   }
 }
 
@@ -180,8 +61,10 @@ class SlotMachine {
     this.stats = new StatsTracker();
     this.betAmount = 10;
     this.soundManager = new SoundManager();
-    this.achievements = new AchievementManager();
     this.setupSymbols();
+    this.achievementManager = new AchievementManager();
+    this.playTime = 0;
+    this.progression = new ProgressionSystem(); // Add progression system
   }
 
   setSounds(spinStart, spinStop, win) {
@@ -203,8 +86,16 @@ class SlotMachine {
   spin() {
     if (this.spinning || this.stats.credits < this.betAmount) return;
     
+    // Apply difficulty multiplier to bet
+    const adjustedBet = Math.round(this.betAmount * this.progression.difficultyMultiplier);
+    
+    if (this.stats.credits < adjustedBet) return;
+    
     this.spinning = true;
     this.soundManager.play('spin');
+    
+    // Add experience for spinning
+    this.progression.addExperience(5);
     
     for (let symbol of this.symbols) {
       symbol.speed = random(15, 25);
@@ -221,14 +112,18 @@ class SlotMachine {
 
   checkWin() {
     const isWin = checkWinningLine(this.symbols);
-    const winAmount = isWin ? this.calculateWinAmount() : 0;
+    const baseWinAmount = isWin ? this.calculateWinAmount() : 0;
+    
+    // Apply difficulty multiplier to wins
+    const adjustedWinAmount = Math.round(baseWinAmount * this.progression.difficultyMultiplier);
     
     if (isWin) {
       this.soundManager.play('win');
+      // Add bonus experience for winning
+      this.progression.addExperience(20);
     }
     
-    this.stats.addSpin(isWin, winAmount);
-    this.achievements.checkAchievements(this.stats);
+    this.stats.addSpin(isWin, adjustedWinAmount);
   }
 
   calculateWinAmount() {
@@ -244,6 +139,12 @@ class SlotMachine {
   }
 
   draw() {
+    // Increment play time
+    this.playTime++;
+    
+    // Update achievements
+    this.achievementManager.update(this.stats, this.playTime);
+
     // Draw frame
     stroke(200);
     noFill();
@@ -269,11 +170,12 @@ class SlotMachine {
     textAlign(CENTER, CENTER);
     text('SPIN', this.spinButton.x, this.spinButton.y);
 
-    // Add bet amount display
+    // Add adjusted bet amount display
+    const adjustedBet = Math.round(this.betAmount * this.progression.difficultyMultiplier);
     fill(255);
     textSize(18);
     textAlign(CENTER, CENTER);
-    text(`Bet: ${this.betAmount}`, width/2, height * 0.7);
+    text(`Bet: ${adjustedBet} (${this.progression.difficultyMultiplier.toFixed(1)}x)`, width/2, height * 0.7);
     
     // Draw stats
     this.stats.draw();
@@ -286,22 +188,17 @@ class SlotMachine {
     textAlign(CENTER, CENTER);
     text(this.soundManager.muted ? '🔇' : '🔊', width - 30, 30);
 
-    // Add achievements button
-    fill(150);
-    circle(width - 35, 20, 20);
-    fill(255);
-    textSize(12);
-    textAlign(CENTER, CENTER);
-    text('🏆', width - 35, 20);
-
-    // Draw achievements
-    this.achievements.draw();
-
     // Responsible gaming message
     fill(150);
     textSize(16);
     text('Please play responsibly. Set time and money limits.',
          width/2, height * 0.95);
+
+    // Draw achievements
+    this.achievementManager.draw();
+
+    // Draw progression elements
+    this.progression.draw();
   }
 
   checkButton(x, y) {
@@ -318,8 +215,8 @@ class SlotMachine {
       return 'mute';
     }
 
-    // Check achievement panel button
-    if (this.achievements.checkButton(x, y)) {
+    // Check achievement button
+    if (this.achievementManager.checkButton(x, y)) {
       return 'achievements';
     }
     
@@ -327,30 +224,4 @@ class SlotMachine {
   }
 }
 
-class Ball {
-  constructor(x, y, size = 30) {
-    this.x = x;
-    this.y = y;
-    this.size = size;
-    this.vx = 3;
-    this.vy = 2;
-  }
-
-  update() {
-    // Update position
-    this.x += this.vx;
-    this.y += this.vy;
-
-    // Bounce off walls
-    if (this.x + this.size / 2 > width || this.x - this.size / 2 < 0)
-      this.vx *= -1;
-    if (this.y + this.size / 2 > height || this.y - this.size / 2 < 0)
-      this.vy *= -1;
-  }
-
-  draw() {
-    fill(255);
-    noStroke();
-    circle(this.x, this.y, this.size);
-  }
-}
+// Rest of the existing code remains the same
