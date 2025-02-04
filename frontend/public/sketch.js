@@ -1,21 +1,21 @@
-console.log('Sketch starting...');
+let canvas;
 
 function setup() {
   console.log('Setting up canvas...');
-  let canvas = createCanvas(windowWidth, windowHeight);
+  canvas = createCanvas(windowWidth, windowHeight);
   canvas.parent('sketch-container');
-  console.log('Canvas created');
+  console.log('Canvas created:', width, 'x', height);
 }
 
 function draw() {
   background(0);
   
-  // Draw a simple test shape
+  // Test shape
   fill(255);
   noStroke();
   circle(width/2, height/2, 100);
   
-  // Draw test text
+  // Test text
   fill(255);
   textSize(32);
   textAlign(CENTER, CENTER);
