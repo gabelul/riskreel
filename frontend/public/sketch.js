@@ -1,47 +1,57 @@
-let slotMachine;
+console.log('Loading sketch...');
 
-function setup() {
-  let canvas = createCanvas(windowWidth, windowHeight);
-  canvas.parent('sketch-container');
-  slotMachine = new SlotMachine();
-}
+new p5(function(p) {
+  let slotMachine;
 
-function draw() {
-  // Solid background first
-  background(25, 35, 60); // Dark blue base
+  p.setup = function() {
+    const canvas = p.createCanvas(p.windowWidth, p.windowHeight);
+    canvas.parent('sketch-container');
+    
+    // Initialize theme with p5 instance
+    window.initTheme(p);
+    
+    // Create slot machine
+    slotMachine = new SlotMachine(p);
+  };
 
-  // Draw stars
-  drawStars();
-  
-  // Draw pyramid silhouette
-  fill(141, 110, 99, 100); // Pyramid color with transparency
-  noStroke();
-  triangle(
-    width/2, height * 0.2,
-    width * 0.2, height * 0.8,
-    width * 0.8, height * 0.8
-  );
+  p.draw = function() {
+    // Background
+    p.background(25, 35, 60);
 
-  slotMachine.draw();
-}
+    // Draw stars
+    for (let i = 0; i < 50; i++) {
+      let x = p.noise(i, p.frameCount * 0.001) * p.width;
+      let y = p.noise(i + 100, p.frameCount * 0.001) * p.height * 0.5;
+      let brightness = p.noise(i + 200, p.frameCount * 0.02) * 255;
+      p.stroke(brightness);
+      p.strokeWeight(2);
+      p.point(x, y);
+    }
+    
+    // Draw pyramid silhouette
+    p.fill(141, 110, 99, 100);
+    p.noStroke();
+    p.triangle(
+      p.width/2, p.height * 0.2,
+      p.width * 0.2, p.height * 0.8,
+      p.width * 0.8, p.height * 0.8
+    );
 
-function drawStars() {
-  // Draw twinkling stars
-  for (let i = 0; i < 50; i++) {
-    let x = noise(i, frameCount * 0.001) * width;
-    let y = noise(i + 100, frameCount * 0.001) * height * 0.5;
-    let brightness = noise(i + 200, frameCount * 0.02) * 255;
-    stroke(brightness);
-    strokeWeight(2);
-    point(x, y);
-  }
-}
+    slotMachine.draw();
+  };
 
-function mousePressed() {
-  slotMachine.handleClick(mouseX, mouseY);
-}
+  p.windowResized = function() {
+    p.resizeCanvas(p.windowWidth, p.windowHeight);
+    if (slotMachine) {
+      slotMachine.resize();
+    }
+  };
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  slotMachine.resize();
-}
+  p.mousePressed = function() {
+    if (slotMachine) {
+      slotMachine.handleClick(p.mouseX, p.mouseY);
+    }
+  };
+});
+
+console.log('Sketch loaded');
