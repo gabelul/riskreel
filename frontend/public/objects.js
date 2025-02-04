@@ -1,4 +1,4 @@
-console.log('Objects loading...');
+console.log('Objects loaded');
 
 window.GameObject = class GameObject {
   constructor(x, y) {
@@ -144,5 +144,3 @@ class SlotMachine {
     );
   }
 }
-
-console.log('Objects loaded!');

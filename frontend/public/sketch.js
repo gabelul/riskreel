@@ -1,3 +1,5 @@
+console.log('Sketch starting...');
+
 let canvas;
 
 function setup() {
