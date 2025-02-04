@@ -4,84 +4,150 @@ class Reel {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.currentSymbol = '☥';
-    this.isSpinning = false;
+    this.targetY = y;
+    this.symbol = THEME.symbols[0];
+    this.rotation = 0;
+    this.speed = 0;
+    this.scale = 1;
   }
 
   draw() {
-    // Draw reel background
-    fill(50);
-    stroke(255, 215, 0);
-    strokeWeight(2);
-    rect(this.x, this.y, 100, 100, 10);
+    push();
+    translate(this.x + THEME.ui.reelWidth/2, this.y + THEME.ui.reelHeight/2);
+    rotate(this.rotation);
+    scale(this.scale);
 
-    // Draw symbol
-    fill(255, 215, 0);
+    // Reel background with glow
+    createGlow(THEME.colors.gold, THEME.ui.glowStrength);
+    fill(THEME.colors.nightSky);
+    stroke(THEME.colors.gold);
+    strokeWeight(2);
+    rect(-THEME.ui.reelWidth/2, -THEME.ui.reelHeight/2, 
+         THEME.ui.reelWidth, THEME.ui.reelHeight, 
+         THEME.ui.cornerRadius);
+
+    // Symbol with glow
+    createGlow(this.symbol.color, THEME.ui.glowStrength);
+    fill(this.symbol.color);
     noStroke();
-    textSize(60);
+    textSize(THEME.ui.reelHeight * 0.6);
     textAlign(CENTER, CENTER);
-    text(this.currentSymbol, this.x + 50, this.y + 50);
+    text(this.symbol.char, 0, 0);
+
+    clearGlow();
+    pop();
   }
 
   spin() {
-    this.isSpinning = true;
-    // Simple symbol change
-    const symbols = ['☥', '👁', '🔺', '🪲', '⚘'];
-    this.currentSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+    this.speed = random(15, 25);
+    this.symbol = random(THEME.symbols);
+    this.scale = 0.95;
+  }
+
+  update() {
+    if (this.speed > 0) {
+      this.rotation += this.speed * 0.1;
+      this.speed *= 0.9;
+      this.scale = lerp(this.scale, 1, 0.1);
+
+      if (this.speed < 0.1) {
+        this.speed = 0;
+        this.rotation = 0;
+        this.scale = 1;
+      }
+    }
   }
 }
 
 class SlotMachine {
   constructor() {
     this.reels = [];
+    this.spinning = false;
     this.init();
   }
 
   init() {
-    // Create three reels
+    const centerX = width/2 - (THEME.ui.reelWidth + THEME.ui.spacing);
+    const centerY = height/2 - THEME.ui.reelHeight/2;
+    
     for (let i = 0; i < 3; i++) {
-      const x = width/2 - 150 + (i * 120);
-      const y = height/2 - 50;
-      this.reels[i] = new Reel(x, y);
+      const x = centerX + (i * (THEME.ui.reelWidth + THEME.ui.spacing));
+      this.reels[i] = new Reel(x, centerY);
     }
   }
 
   draw() {
-    // Draw title
-    fill(255, 215, 0);
-    textSize(32);
-    textAlign(CENTER, TOP);
-    text('Egyptian Slots', width/2, 50);
+    // Machine frame
+    createGlow(THEME.colors.gold, THEME.ui.glowStrength * 1.5);
+    fill(THEME.colors.nightSky);
+    stroke(THEME.colors.gold);
+    strokeWeight(3);
+    rect(width/2 - (THEME.ui.reelWidth * 2), 
+         height/2 - THEME.ui.reelHeight * 1.2,
+         THEME.ui.reelWidth * 4,
+         THEME.ui.reelHeight * 2.4,
+         THEME.ui.cornerRadius * 2);
+    clearGlow();
 
-    // Draw reels
-    for (let i = 0; i < this.reels.length; i++) {
-      this.reels[i].draw();
+    // Title
+    drawGlowingText(
+      "Egyptian Fortune",
+      width/2,
+      height/2 - THEME.ui.reelHeight * 1.5,
+      THEME.colors.gold,
+      48
+    );
+
+    // Update and draw reels
+    for (let reel of this.reels) {
+      reel.update();
+      reel.draw();
     }
 
-    // Draw spin button
-    fill(255, 140, 0);
-    stroke(255, 215, 0);
-    rect(width/2 - 60, height/2 + 100, 120, 40, 20);
+    // Spin button
+    this.drawSpinButton();
+  }
+
+  drawSpinButton() {
+    const buttonY = height/2 + THEME.ui.reelHeight * 0.8;
     
-    fill(255);
-    noStroke();
-    textSize(20);
-    textAlign(CENTER, CENTER);
-    text('SPIN', width/2, height/2 + 120);
+    // Button background with glow
+    createGlow(this.spinning ? THEME.colors.sandDark : THEME.colors.accent, 
+               THEME.ui.glowStrength);
+    fill(this.spinning ? THEME.colors.nightSky : THEME.colors.accent);
+    stroke(THEME.colors.gold);
+    rect(width/2 - 60, buttonY, 120, 40, 20);
+    clearGlow();
+
+    // Button text
+    drawGlowingText(
+      this.spinning ? "SPINNING..." : "SPIN",
+      width/2,
+      buttonY + 20,
+      THEME.colors.sandLight,
+      20
+    );
   }
 
   handleClick(mx, my) {
-    // Check if spin button clicked
+    const buttonY = height/2 + THEME.ui.reelHeight * 0.8;
     if (mx > width/2 - 60 && mx < width/2 + 60 &&
-        my > height/2 + 100 && my < height/2 + 140) {
+        my > buttonY && my < buttonY + 40) {
       this.spin();
     }
   }
 
   spin() {
-    for (let i = 0; i < this.reels.length; i++) {
-      this.reels[i].spin();
+    if (this.spinning) return;
+    
+    this.spinning = true;
+    for (let reel of this.reels) {
+      reel.spin();
     }
+
+    setTimeout(() => {
+      this.spinning = false;
+    }, THEME.ui.spinDuration);
   }
 
   resize() {
