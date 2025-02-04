@@ -1,20 +1,20 @@
+console.log('Loading sketch...');
+
 let slotMachine;
 
 function setup() {
-  canvas = createCanvas(windowWidth, windowHeight);
+  console.log('Setting up canvas...');
+  let canvas = createCanvas(windowWidth, windowHeight);
   canvas.parent('sketch-container');
   slotMachine = new SlotMachine();
+  console.log('Setup complete');
 }
 
 function draw() {
-  // Gradient background
-  let gradient = drawingContext.createLinearGradient(0, 0, width, height);
-  gradient.addColorStop(0, THEME.colors.darker);
-  gradient.addColorStop(1, THEME.colors.dark);
-  drawingContext.fillStyle = gradient;
-  rect(0, 0, width, height);
+  // Background
+  background(THEME.colors.darker);
 
-  // Background pyramid silhouette
+  // Background pyramid
   fill(0, 20);
   noStroke();
   triangle(width/2, height * 0.1,
@@ -26,11 +26,15 @@ function draw() {
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  slotMachine.setupSymbols();
+  if (slotMachine) {
+    slotMachine.setupSymbols();
+  }
 }
 
 function mousePressed() {
-  if (slotMachine.checkSpin(mouseX, mouseY)) {
+  if (slotMachine && slotMachine.checkSpin(mouseX, mouseY)) {
     slotMachine.spin();
   }
 }
+
+console.log('Sketch loaded');

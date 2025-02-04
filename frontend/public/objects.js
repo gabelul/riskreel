@@ -1,20 +1,12 @@
-console.log('Objects loaded');
-
-window.GameObject = class GameObject {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-  }
-}
+console.log('Loading objects...');
 
 class Symbol {
   constructor(x, y) {
     this.x = x;
     this.y = y;
     this.targetY = y;
-    this.symbol = random(THEME.symbols);
+    this.symbol = THEME.symbolList[Math.floor(Math.random() * THEME.symbolList.length)];
     this.rotation = 0;
-    this.scale = 1;
     this.speed = 0;
   }
 
@@ -24,7 +16,7 @@ class Symbol {
       this.rotation += this.speed * 0.02;
       this.speed *= 0.95;
 
-      if (abs(this.y - this.targetY) < 1) {
+      if (Math.abs(this.y - this.targetY) < 1) {
         this.y = this.targetY;
         this.speed = 0;
         this.rotation = 0;
@@ -36,12 +28,10 @@ class Symbol {
     push();
     translate(this.x + THEME.ui.reelWidth/2, this.y + THEME.ui.reelHeight/2);
     rotate(this.rotation);
-    scale(this.scale);
 
     // Symbol background
-    createGlow(drawingContext, this.symbol.color, THEME.ui.glowStrength);
     fill(THEME.colors.darker);
-    stroke(this.symbol.color);
+    stroke(THEME.colors.primary);
     strokeWeight(2);
     rect(-THEME.ui.reelWidth/2, -THEME.ui.reelHeight/2, 
          THEME.ui.reelWidth, THEME.ui.reelHeight, 
@@ -49,12 +39,11 @@ class Symbol {
 
     // Symbol
     noStroke();
-    fill(this.symbol.color);
+    fill(THEME.colors.primary);
     textSize(THEME.ui.reelHeight * 0.6);
     textAlign(CENTER, CENTER);
-    text(this.symbol.char, 0, 0);
+    text(this.symbol, 0, 0);
 
-    clearGlow(drawingContext);
     pop();
   }
 }
@@ -79,19 +68,18 @@ class SlotMachine {
     if (this.spinning) return;
     
     this.spinning = true;
-    for (let symbol of this.symbols) {
-      symbol.speed = random(15, 25);
-      symbol.symbol = random(THEME.symbols);
+    for (let i = 0; i < this.symbols.length; i++) {
+      this.symbols[i].speed = random(15, 25);
+      this.symbols[i].symbol = THEME.symbolList[Math.floor(Math.random() * THEME.symbolList.length)];
     }
 
     setTimeout(() => {
       this.spinning = false;
-    }, THEME.ui.spinDuration);
+    }, 2000);
   }
 
   draw() {
     // Background frame
-    createGlow(drawingContext, THEME.colors.primary, THEME.ui.glowStrength);
     fill(THEME.colors.darker);
     stroke(THEME.colors.primary);
     strokeWeight(3);
@@ -100,26 +88,22 @@ class SlotMachine {
          THEME.ui.reelWidth * 4,
          THEME.ui.reelHeight * 2.4,
          THEME.ui.radius * 2);
-    clearGlow(drawingContext);
 
     // Title
     fill(THEME.colors.primary);
+    noStroke();
     textSize(48);
     textAlign(CENTER, CENTER);
-    createGlow(drawingContext, THEME.colors.primary, THEME.ui.glowStrength);
     text("Egyptian Fortune", width/2, height/2 - THEME.ui.reelHeight * 1.5);
-    clearGlow(drawingContext);
 
-    // Update and draw symbols
-    for (let symbol of this.symbols) {
-      symbol.update();
-      symbol.draw();
+    // Draw symbols
+    for (let i = 0; i < this.symbols.length; i++) {
+      this.symbols[i].update();
+      this.symbols[i].draw();
     }
 
     // Spin button
     let buttonY = height/2 + THEME.ui.reelHeight * 0.8;
-    createGlow(drawingContext, this.spinning ? THEME.colors.dark : THEME.colors.accent, 
-               THEME.ui.glowStrength);
     fill(this.spinning ? THEME.colors.darker : THEME.colors.accent);
     stroke(THEME.colors.primary);
     rect(width/2 - 75, buttonY, 150, 50, 25);
@@ -127,8 +111,8 @@ class SlotMachine {
     fill(THEME.colors.light);
     noStroke();
     textSize(24);
+    textAlign(CENTER, CENTER);
     text(this.spinning ? "SPINNING..." : "SPIN", width/2, buttonY + 25);
-    clearGlow(drawingContext);
   }
 
   checkSpin(mx, my) {
@@ -137,3 +121,5 @@ class SlotMachine {
             my > buttonY && my < buttonY + 50);
   }
 }
+
+console.log('Objects loaded');
