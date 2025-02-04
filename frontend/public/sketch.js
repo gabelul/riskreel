@@ -24,11 +24,12 @@ function draw() {
   
   slotMachine.draw();
   
-  // Draw session timer
+  // Draw session timer and win rate
   fill(100);
   textSize(16);
   textAlign(LEFT, TOP);
   text(`Session time: ${formatTime(playTime)}`, 20, 20);
+  text(`Win Rate: ${calculateWinProbability(slotMachine.stats.wins, slotMachine.stats.totalSpins)}%`, 20, 45);
 }
 
 function mousePressed() {
@@ -41,4 +42,9 @@ function formatTime(seconds) {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function calculateWinProbability(wins, totalSpins) {
+  if (totalSpins === 0) return 0;
+  return ((wins / totalSpins) * 100).toFixed(2);
 }

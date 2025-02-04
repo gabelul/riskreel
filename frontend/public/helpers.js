@@ -10,3 +10,12 @@ function formatTime(seconds) {
   const secs = seconds % 60;
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
+
+function calculateWinProbability(wins, totalSpins) {
+  if (totalSpins === 0) return 0;
+  return (wins / totalSpins * 100).toFixed(1);
+}
+
+function formatCredits(amount) {
+  return amount.toLocaleString();
+}

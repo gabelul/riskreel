@@ -28,6 +28,63 @@ class Symbol {
   }
 }
 
+class StatsTracker {
+  constructor() {
+    this.wins = 0;
+    this.losses = 0;
+    this.totalSpins = 0;
+    this.credits = 1000;
+    this.lastWin = 0;
+    this.showWinAnimation = false;
+    this.winAnimationTimer = 0;
+  }
+
+  addSpin(isWin, amount) {
+    this.totalSpins++;
+    if (isWin) {
+      this.wins++;
+      this.credits += amount;
+      this.lastWin = amount;
+      this.showWinAnimation = true;
+      this.winAnimationTimer = 60; // Animation frames
+    } else {
+      this.losses++;
+      this.credits -= 10; // Base bet
+    }
+  }
+
+  draw() {
+    // Stats Panel
+    fill(255);
+    stroke(200);
+    rect(20, height - 120, 200, 100, 10);
+    
+    noStroke();
+    fill(50);
+    textAlign(LEFT, TOP);
+    textSize(14);
+    text(`Credits: ${this.credits}`, 30, height - 110);
+    text(`Total Spins: ${this.totalSpins}`, 30, height - 90);
+    text(`Wins: ${this.wins}`, 30, height - 70);
+    text(`Losses: ${this.losses}`, 30, height - 50);
+    
+    // Win Animation
+    if (this.showWinAnimation) {
+      this.winAnimationTimer--;
+      if (this.winAnimationTimer <= 0) {
+        this.showWinAnimation = false;
+      }
+      
+      push();
+      textAlign(CENTER, CENTER);
+      textSize(32);
+      fill(255, 215, 0, this.winAnimationTimer * 4);
+      text(`WIN! +${this.lastWin}`, width/2, height/2 - 100);
+      pop();
+    }
+  }
+}
+
 class SlotMachine {
   constructor() {
     this.reels = 3;
@@ -39,6 +96,8 @@ class SlotMachine {
       w: 150,
       h: 50
     };
+    this.stats = new StatsTracker();
+    this.betAmount = 10;
     this.setupSymbols();
   }
 
@@ -53,7 +112,8 @@ class SlotMachine {
   }
 
   spin() {
-    if (this.spinning) return;
+    if (this.spinning || this.stats.credits < this.betAmount) return;
+    
     this.spinning = true;
     
     for (let symbol of this.symbols) {
@@ -62,10 +122,34 @@ class SlotMachine {
       symbol.current = random(symbol.symbols);
     }
 
-    // Auto-stop after 2 seconds
     setTimeout(() => {
       this.spinning = false;
+      this.checkWin();
     }, 2000);
+  }
+
+  checkWin() {
+    const isWin = this.checkWinningLine();
+    const winAmount = isWin ? this.calculateWinAmount() : 0;
+    this.stats.addSpin(isWin, winAmount);
+  }
+
+  checkWinningLine() {
+    // Check if all symbols are the same
+    return this.symbols[0].current === this.symbols[1].current && 
+           this.symbols[1].current === this.symbols[2].current;
+  }
+
+  calculateWinAmount() {
+    // Different symbols have different values
+    const symbolValues = {
+      '🔔': 50,
+      '⭐': 40,
+      '🍇': 30,
+      '🍎': 20,
+      '🍋': 20
+    };
+    return symbolValues[this.symbols[0].current] || 20;
   }
 
   draw() {
@@ -93,6 +177,15 @@ class SlotMachine {
     textSize(24);
     textAlign(CENTER, CENTER);
     text('SPIN', this.spinButton.x, this.spinButton.y);
+
+    // Add bet amount display
+    fill(255);
+    textSize(18);
+    textAlign(CENTER, CENTER);
+    text(`Bet: ${this.betAmount}`, width/2, height * 0.7);
+    
+    // Draw stats
+    this.stats.draw();
 
     // Responsible gaming message
     fill(150);
